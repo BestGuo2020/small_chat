@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title th:text="'小聊 - ' + ${session.user.userId}">xChat -Responsive Multi-purpose HTML5 Template</title>
+    <aaa th:replace="~{commons::#head-commons}"></aaa>
+    <link rel="stylesheet" th:href="@{/static/css/animate.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/toast.min.css}">
+
+    <style>
+        .non-head {
+            width: 50px;
+            height: 50px;
+            display: block;
+            text-align: center;
+            line-height: 50px;
+            color: white;
+            font-size: 19px;
+        }
+
+        .non-head-small {
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            font-size: 17px;
+            margin-right: 20px;
+        }
+
+        .non-head-small-2 {
+            width: 100%;
+            height: 100%;
+            line-height: 52px;
+        }
+
+        /* 头像设置为可显示的 */
+        .avatar {
+            overflow: visible !important;
+        }
+
+        /* 设置在线状态的图标样式 */
+        .online-status {
+            width: 15px;
+            height: 15px;
+            display: block;
+            position: relative;
+            border-radius: 15px;
+            top: -51px;
+            background-color: #3af951;
+        }
+
+        /* 离线 */
+        .offline {
+            background-color: #aaaaaa;
+        }
+
+        .message-wrap {
+            padding: 10px 15px !important;
+            line-height: 20px !important;
+            text-align: left;
+            width: fit-content;
+        }
+
+        .outgoing-message .message-wrap {
+            width: fit-content;
+            float: right;
+        }
+
+        .friendly-hint {
+            display: block;
+            position: absolute;
+            left: calc(50% - 105px);
+            top: calc(50%);
+            color: black;
+        }
+
+        .friendly-hint-dark {
+            color: white;
+        }
+
+        .send-text-dark {
+            color: #ddd !important;
+        }
+
+    </style>
+
+</head>
+
+<body>
+<!-- add friend modal -->
+<div class="modal fade show" id="addfriend">
+    <div class="modal-dialog modal-md modal-md modal-dialog-centered modal-dialog-zoom">
+        <div class="modal-content pb-0 d-flex justify-content-between text-center">
+            <div class="modal-content pb-0">
+                <div class="modal-header add-friend">
+                    <h5 class="modal-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                             class="feather feather-user-plus mr-2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <line x1="20" y1="8" x2="20" y2="14"></line>
+                            <line x1="23" y1="11" x2="17" y2="11"></line>
+                        </svg>
+                        Add Friends
+                    </h5>
+                    <button type="button" class="close" data-dismiss="addfriend" aria-label="close"
+                            id="addfriend-close">
+                        <i class="ti-close text-white"></i>
+                    </button>
+                </div>
+                <div class="modal-body add-friend pl-4 pr-4">
+                    <div class="alert alert-info text-left">Send invitations to friends.</div>
+                    <form>
+                        <div class="form-group text-left">
+                            <label for="emails" class="col-form-label">Email addresses</label>
+                            <input type="text" class="form-control" id="emails">
+                        </div>
+                        <div class="form-group text-left">
+                            <label for="message" class="col-form-label">Invitation message</label>
+                            <textarea class="form-control" id="message"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer add-friend">
+                    <button type="button" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- add friend modal -->
+
+<!-- main wrapper -->
+<div class=" main-wrapper">
+    <!-- navigation -->
+    <nav class="navigation">
+        <div class="container pl-0 pr-0">
+            <div class="nav-content">
+                <ul>
+                    <li class="logo d-none d-xl-block d-lg-block"><a href="chat.html#"><img
+                            th:src="@{/static/images/logo.png}" alt="logo"></a></li>
+                    <li><a href="chat.html#" class="active nav-content-bttn" data-tab="chats"><span id="new-message"
+                                                                                                    style="display: none;"
+                                                                                                    class="circle-icon bg-warning"></span><i
+                            class="ti-comments"></i></a></li>
+                    <li><a href="chat.html#" class="nav-content-bttn" data-tab="friends"><span id="new-friend"
+                                                                                               style="display: none;"
+                                                                                               class="circle-icon bg-danger"></span><i
+                            class="ti-user"></i></a></li>
+                    <li class="flex-lg-brackets"><a href="chat.html#" data-tab="archived" class="nav-content-bttn"><i
+                            class="ti-search"></i></a></li>
+                    <li class="d-none d-xl-block d-lg-block night-mode"><a href="chat.html#"><i
+                            class="ti-flickr-alt"></i></a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- navigation -->
+    <div class="right-content">
+        <div class="left-sidebar">
+
+            <div class="chat-header">
+                <div class="chat-header-user">
+                    <figure class="avatar">
+                        <a th:if="${session.user.head != null}" href="chat.html#">
+                            <img th:src="@{/static/images/user-7.png}" class="rounded-circle" alt="image">
+                        </a>
+                        <span th:if="${session.user.head == null}"
+                              th:text="${session.user.username.substring(0, 1).toUpperCase()}"
+                              class="avatar-title bg-danger rounded-circle non-head profile-detail-bttn">R</span>
+                    </figure>
+                    <div>
+                        <h5 class="mt-0 mb-0" th:text="${session.user.username}">James Henry</h5>
+                        <small class="text-success" th:text="'id: ' + ${session.user.userId}">james43@gmail.com</small>
+                    </div>
+                </div>
+                <div class="chat-header-action nav-content">
+                    <ul class="list-inline mb-1 mt-3">
+                        <li class="list-inline-item mr-3 night-mode"><a href="chat.html#"><i class="ti-flickr-alt"></i></a>
+                        </li>
+                        <li class="list-inline-item mr-3"><a href="javascript:void(0)" onclick="signout()"><i
+                                class="ti-lock"></i></a></li>
+                        <li class="list-inline-item mr-3"><a href="chat.html#" class="nav-content-bttn"
+                                                             data-tab="settings"><i class="ti-settings"></i></a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 消息 -->
+            <div class="sidebar active" id="chats">
+
+                <div class="text-left mb-1 mt-3"><h2 class="title-text"><b>最近聊天</b></h2></div>
+                <div class="chat-list-content">
+                    <ul class="chat-list" id="recent-chat"></ul>
+                </div>
+            </div>
+
+            <div class="sidebar" id="friends">
+                <div class="text-left mb-2 mt-3"><h2 class="title-text"><b>待同意的好友</b></h2></div>
+                <div class="row pl-2 pr-2" style="max-width:450px;">
+                    <div class="owl-carousel owl-theme slider-0 owl-loaded owl-drag">
+                        <div class="owl-stage-outer">
+                            <div class="owl-stage"
+                                 style="transform: translate3d(-144px, 0px, 0px); transition: all 0.25s ease 0s; width: 579px;">
+                                <div class="owl-item" style="width: 100%;">
+                                    <div class="item">
+                                        <div class="recent-chat float-left">
+                                            <div class="user">
+                                                <img src="/static/images/user-2.png" alt="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="owl-nav disabled">
+                            <button type="button" role="presentation" class="owl-prev"><span
+                                    aria-label="Previous">‹</span></button>
+                            <button type="button" role="presentation" class="owl-next"><span aria-label="Next">›</span>
+                            </button>
+                        </div>
+                        <div class="owl-dots disabled"></div>
+                    </div>
+                </div>
+                <div class="text-left mb-2 mt-3"><h2 class="title-text"><b>好友列表</b></h2></div>
+                <div class="chat-list-content">
+                    <ul class="chat-list"></ul>
+                </div>
+            </div>
+
+            <div class="sidebar" id="archived">
+                <div class="text-left mb-2 mt-3"><h2 class="title-text"><b>查找好友</b></h2></div>
+                <div class="form-content">
+                    <form id="find-friend" action="/findFriends" class="mb-3 mt-1">
+                        <input type="text" id="friend-input" class="form-control" placeholder="输入小聊号或者昵称查找好友..." style="padding-right: 56px;">
+						<div id="search-friend" style="width: 55px; height: 55px; position: absolute; top: 0; right: 0; z-index: 1"></div>
+                    </form>
+                </div>
+                <div class="chat-list-content">
+                    <ul class="chat-list" id="friend-search-list"></ul>
+                </div>
+            </div>
+
+            <div class="sidebar" id="settings">
+                <div class="text-left mb-2 mt-3"><h2 class="title-text"><b>账户设置</b></h2></div>
+                <div class="chat-list-content mb-3 mt-3">
+                    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                        <div class="panel panel-default">
+                            <div class="panel-heading" role="tab" id="headingOne">
+                                <h4 class="panel-title"><a role="button" data-toggle="collapse" data-parent="#accordion"
+                                                           href="chat.html#collapseOne" aria-expanded="true"
+                                                           aria-controls="collapseOne" class="collapsed">My Profile
+                                    <span>Configure your preferences.</span></a></h4>
+                            </div>
+                            <div id="collapseOne" class="panel-collapse collapse" role="tabpanel"
+                                 aria-labelledby="headingOne">
+                                <div class="panel-body">
+                                    <form action="chat.html#" class="mb-3 mt-3">
+                                        <input type="text" class="form-control mb-3" placeholder="Name">
+                                        <input type="text" class="form-control mb-3" placeholder="City">
+                                        <input type="text" class="form-control mb-3" placeholder="Phone">
+                                        <input type="text" class="form-control mb-3" placeholder="Website">
+                                        <textarea name="name" id="bio" cols="30" rows="4" class="mb-3"
+                                                  placeholder="Write a few words that describe you.."></textarea>
+                                        <button>Save</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading" role="tab" id="headingTwo">
+                                <h4 class="panel-title"><a role="button" data-toggle="collapse" data-parent="#accordion"
+                                                           href="chat.html#collapseTwo" aria-expanded="true"
+                                                           aria-controls="collapseTwo" class="collapsed">Privacy &
+                                    Safety <span>Configure your preferences.</span></a></h4>
+                            </div>
+                            <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel"
+                                 aria-labelledby="headingTwo">
+                                <div class="panel-body">
+                                    <form action="chat.html#" class="mb-3 mt-3">
+                                        <input type="text" class="form-control mb-3" placeholder="Current Password">
+                                        <input type="text" class="form-control mb-3" placeholder="New Password">
+                                        <input type="text" class="form-control mb-3" placeholder="Reset Password">
+                                        <button>Save</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading" role="tab" id="headingThree">
+                                <h4 class="panel-title"><a role="button" data-toggle="collapse" data-parent="#accordion"
+                                                           href="chat.html#collapseThree" aria-expanded="true"
+                                                           aria-controls="collapseThree" class="collapsed">Social Links
+                                    <span>Configure your preferences.</span></a></h4>
+                            </div>
+                            <div id="collapseThree" class="panel-collapse collapse" role="tabpanel"
+                                 aria-labelledby="headingThree">
+                                <div class="panel-body">
+                                    <form action="chat.html#" class="mb-3 mt-3">
+                                        <div class="social-link facebook"><i class="ti-facebook bg-facebook"></i><input
+                                                type="text" class="form-control mb-3"
+                                                placeholder="https://www.facebook.com/"></div>
+                                        <div class="social-link facebook"><i
+                                                class="ti-twitter-alt bg-twitter"></i><input type="text"
+                                                                                             class="form-control mb-3"
+                                                                                             placeholder="https://www.twitter.com/">
+                                        </div>
+                                        <div class="social-link facebook"><i class="ti-google bg-google"></i><input
+                                                type="text" class="form-control mb-3"
+                                                placeholder="https://www.google.com/"></div>
+                                        <div class="social-link facebook"><i
+                                                class="ti-pinterest bg-pinterest"></i><input type="text"
+                                                                                             class="form-control mb-3"
+                                                                                             placeholder="https://www.pinterest.com/">
+                                        </div>
+                                        <div class="social-link facebook"><i class="ti-linkedin bg-linkedIn"></i><input
+                                                type="text" class="form-control mb-3"
+                                                placeholder="https://www.linkedin.com/"></div>
+                                        <div class="social-link facebook"><i class="ti-dribbble bg-behance"></i><input
+                                                type="text" class="form-control mb-3"
+                                                placeholder="https://www.dribbble.com/"></div>
+                                        <div class="social-link facebook"><i class="ti-github bg-github"></i><input
+                                                type="text" class="form-control mb-3"
+                                                placeholder="https://www.github.com/"></div>
+                                        <div class="social-link facebook mb-3"><i class="ti-skype bg-skype"></i><input
+                                                type="text" class="form-control mb-3"
+                                                placeholder="https://www.skype.com/"></div>
+                                        <button>Save</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading" role="tab" id="headingFour">
+                                <h4 class="panel-title"><a role="button" data-toggle="collapse" data-parent="#accordion"
+                                                           href="chat.html#collapseFour" aria-expanded="true"
+                                                           aria-controls="collapseFour" class="collapsed">Appearance
+                                    <span>Configure your preferences.</span></a></h4>
+                            </div>
+                            <div id="collapseFour" class="panel-collapse collapse" role="tabpanel"
+                                 aria-labelledby="headingFour">
+                                <div class="panel-body">
+                                    <div class="switch-box">
+                                        <h4>Allow connected contacts</h4>
+                                        <label class="switch float-right mb-0" for="checkbox1">
+                                            <input type="checkbox" id="checkbox1"/>
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                    <div class="switch-box">
+                                        <h4>Confirm message requests</h4>
+                                        <label class="switch float-right mb-0" for="checkbox2">
+                                            <input type="checkbox" id="checkbox2" checked/>
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                    <div class="switch-box">
+                                        <h4>Developer mode options</h4>
+                                        <label class="switch float-right mb-0" for="checkbox">
+                                            <input type="checkbox" id="checkbox"/>
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="chat-content" id="no-select" style="display: block; position: relative;">
+            <div class="friendly-hint">
+                请选择一个好友，开始聊天吧😊
+            </div>
+        </div>
+        <div class="chat-content" id="selected-friend" style="display: none;">
+            <!-- chat header -->
+            <div class="chat-header">
+                <div class="chat-header-user" id="content-header">
+                    <figure class="avatar">
+                        <img th:src="@{/static/images/user-9.png}" class="rounded-circle" alt="image">
+                    </figure>
+                    <div>
+                        <h5 class="mt-2 mb-0">Alice Maghyn</h5>
+                        <small class="text-success">Typing....</small>
+                    </div>
+                </div>
+                <div class="chat-header-action">
+                    <ul class="list-inline mb-0 mt-2">
+                        <li class="list-inline-item d-xl-none d-lg-none">
+                            <a href="#" class="bttn-box-round back-chat-div"><i class="ti-arrow-left"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- chat header -->
+            <!-- chat body -->
+            <div class="chat-body" style="overflow: hidden;outline: none;">
+                <div class="messages-content">
+                </div>
+            </div>
+            <!-- chat body -->
+            <!-- chat footer -->
+            <div class="chat-footer">
+                <form>
+                    <input type="text" style="color: #1a2236" id="send-text" autocomplete="off" placeholder="发送消息..">
+                    <button type="button" onclick="sendMessage()"><img th:src="@{/static/images/send.png}" alt="send">
+                    </button>
+                </form>
+            </div>
+            <!-- chat footer -->
+        </div>
+    </div>
+</div>
+<!-- main wrapper -->
+
+<!-- SCRIPTS -->
+<div th:replace="~{commons::#common-script}"></div>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.min.js"></script>
+<script th:src="@{/static/js/toast.min.js}"></script>
+<!-- websocket -->
+<script th:src="@{/static/js/chat.js}"></script>
+<!-- 查找好友 -->
+<script>
+    // 点击搜索按钮的操作
+    $("#search-friend").click(function () {
+		console.log("开始搜索了");
+		// 输入数据
+		var keywords = $("#friend-input").val();
+		if(keywords === "") {
+			swal({
+				title: "提示",
+                message: "输入的内容不能为空",
+				icon: "error"
+			});
+		} else {
+			$.get({
+				url: "/findFriends",
+				data: {
+					keywords: keywords
+				},
+				success: function (e) {
+					console.log(e);
+					if(e.status === 1) {
+					    var html = "";
+					    for(var i = 0; i < e.data.length; i++) {
+                            // 没有头像的时候
+                            var head = `<span class="avatar-title bg-primary rounded-circle">` + e.data[i].username.charAt(0).toUpperCase() + `</span>`;
+                            // 如果有头像
+                            if (e.data[i].head !== null) {
+                                head = `<img src="/static/images/user-2.png" alt="image" />`
+                            }
+					        html = html.concat(`<li class="chat-list-item">
+                            <figure class="avatar user-online">
+                                ` + head + `
+                            </figure>
+                            <div class="list-body">
+                                <div class="chat-bttn">
+                                    <h3 class="mb-1 mt-1">` + e.data[i].username + `</h3>
+                                    <p class="text-info">` + e.data[i].userId + `</p>
+                                </div>
+                                <div class="list-action mt-2 text-right">
+                                    <button class="btn btn-primary" onclick="addFriend(this)" data-user-id="` + e.data[i].userId + `">添加</button>
+                                </div>
+                            </div>
+                        </li>`);
+                        }
+					    $("#friend-search-list").html(html);
+
+                    } else if(e.status === -1) {
+                        swal({
+                            title: "提示",
+                            text: e.msg,
+                            icon: "warning"
+                        }).then(function () {
+                            location.href = "/signin";
+                        });
+                    }
+				}
+			})
+		}
+    });
+
+    // 添加好友
+    function addFriend(e) {
+        var friendId = e.getAttribute("data-user-id");
+        $.get({
+            url: "/findFriend",
+            data: {
+                userId: friendId
+            },
+            success: function (e1) {
+                swal({
+                    title: "确认添加",
+                    text: "昵称：" + e1.data.username + "\n小聊号：" + e1.data.userId,
+                    icon: "info",
+                    buttons: {
+                        ok: {
+                            text: "添加",
+                            value: true
+                        },
+                        refuse: {
+                            text: "取消",
+                            value: false
+                        }
+                    },
+                }).then(function (yes) {
+                    var userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
+                    if(yes) {
+                        // 添加
+                        $.post({
+                            url: "/addFriend",
+                            data: {
+                                friendId: friendId,
+                                userId: userInfo.userId
+                            },
+                            success: function (e2) {
+                                if(e2.status === 1) {
+                                    swal({
+                                        title: "提示",
+                                        text: e2.msg,
+                                        icon: "success"
+                                    });
+                                } else if(e2.status === -1) {
+                                    swal({
+                                        title: "提示",
+                                        text: e2.msg,
+                                        icon: "warning"
+                                    }).then(function () {
+                                        location.href = "/signin";
+                                    });
+                                } else if(e2.status === 0) {
+                                    swal({
+                                        title: "提示",
+                                        text: e2.msg,
+                                        icon: "error"
+                                    });
+                                }
+                            }
+                        })
+                    }
+                });
+            }
+        });
+    }
+
+    function confirmFriend(e) {
+        console.log("开始同意");
+        var userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
+        var friendId = e.getAttribute("data-user-id");
+        swal({
+            title: "提示",
+            text: "确定要添加为好友吗？",
+            icon: "info",
+            buttons: {
+                ok: {
+                    text: "同意",
+                    value: true,
+                },
+                refuse: {
+                    text: "拒绝",
+                    value: false
+                }
+            }
+        }).then(function (yes) {
+            var req = {
+                url: "/confirmFriend",
+                data: {
+                    friendId: friendId,
+                    userId: userInfo.userId
+                },
+                success: function (e1) {
+                    if(e1.status !== -1) {
+                        swal({
+                            title: "提示",
+                            text: e1.msg,
+                            icon: "success"
+                        })
+                    } else {
+                        swal({
+                            title: "提示",
+                            text: e1.msg,
+                            icon: "warning"
+                        }).then(function () {
+                            location.href = "/signin";
+                        });
+                    }
+                }
+            };
+            if(yes) {
+                req.data.ok = 1;
+            } else {
+                req.data.ok = 0;
+            }
+            $.post(req);
+        })
+    }
+</script>
+
+</body>
+
+</html>

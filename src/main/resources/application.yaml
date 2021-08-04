@@ -1,0 +1,19 @@
+spring:
+  mail:
+    host: smtp.qq.com
+    port: 465
+    username: bestguo2020@foxmail.com
+    password: '************'
+    # 开启加密验证
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+
+  # 配置静态资源路径
+  mvc:
+    static-path-pattern: /static/**
+mybatis-plus:
+  type-aliases-package: top.bestguo.chat.entity
+

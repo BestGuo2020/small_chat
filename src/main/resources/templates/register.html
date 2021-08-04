@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>注册“小聊”</title>
+	<aaa th:replace="~{commons::#head-commons}"></aaa>
+
+</head>
+
+<body>
+	<main class="bg-grey" style="background-image: url(images/bg-2.png);">
+		<div class="d-flex align-items-center mx-auto login-form">
+			<div class="container">
+				<div class="card">
+					<div class="card-body p-5">
+						<form>
+							<h3 class="title-text mb-5"><b>注册账号</b></h3>
+							<div class="input-group mb-3">
+								<i class="ti-user"></i>
+			                	<input class="form-control form-control-lg" id="username" type="text" placeholder="用户名">
+			              	</div>
+			              	<div class="input-group mb-3">
+			              		<i class="ti-email"></i>
+			                	<input class="form-control form-control-lg" id="email" type="email" placeholder="邮箱" required="">
+			              	</div>
+			              	<div class="input-group mb-5">
+			              		<i class="ti-lock"></i>
+			                	<input class="form-control form-control-lg" id="password" type="password" placeholder="密码" required="">
+			              	</div>
+			              	<button class="btn btn-block btn-lg btn-primary mt-2" type="button"><b>注册</b></button>
+			              	<p class="mt-4 text-center">已经有账号了? <a class="link-primary" href="/signin">登录</a>.</p>
+			            </form>
+					</div>
+				</div>
+			</div>			
+		</div>
+	</main>
+
+	<!-- SCRIPTS -->
+	<div th:replace="~{commons::#common-script}"></div>
+	<script>
+		$("button[type='button']").click(function () {
+			var data = {
+				username: $("#username").val(),
+				email: $("#email").val(),
+				password: $("#password").val()
+			};
+			if (!(/^.{3,20}$/.test(data.username))) {
+				alert("用户名至少要3个字符，至多要20个字符");
+			} else if (!(/^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/.test(data.email))) {
+				alert("输入的邮箱格式不正确")
+			} else if (!(/^[^%&',;=?$\x22]{6,14}$/.test(data.password))) {
+				alert("密码至少要6个字符，至多要14个字符，且不能包含“%&',;=?$\x22”字符");
+			} else {
+				$.ajax({
+					url: "/signup_do",
+					method: "POST",
+					data: data,
+					success: function (data) {
+						if(data.status === 1) {
+							swal({
+								title: "注册成功",
+								text: data.msg,
+								icon: "success",
+								timer: 3000
+							}).then(function () {
+								location.href = "[[@{/signin}]]";
+							});
+						} else {
+							swal({
+								title: "注册失败",
+								text: data.msg,
+								icon: "fail",
+								timer: 3000
+							})
+						}
+					}
+				});
+			}
+		});
+	</script>
+</body>
+
+</html>

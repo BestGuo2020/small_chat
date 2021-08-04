@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>登录到“小聊”</title>
+	<aaa th:replace="~{commons::#head-commons}"></aaa>
+	<script th:if="${session.user != null}">
+		location.href = "/index"
+	</script>
+
+</head>
+
+<body>
+	<main class="bg-grey" style="background-image: url(/static/images/bg-2.png);">
+		<div class="d-flex align-items-center mx-auto login-form">
+			<div class="container">
+				<div class="card">
+					<div class="card-body p-5">
+						<form>
+							<h3 class="title-text mb-5"><b>登录到“小聊”</b></h3>
+							<div class="input-group mb-3">
+								<i class="ti-user"></i>
+			                	<input class="form-control form-control-lg" id="userId" type="text" placeholder="用户账号">
+			              	</div>
+			              	<div class="input-group mb-3">
+			              		<i class="ti-lock"></i>
+			                	<input class="form-control form-control-lg" id="password" type="password" placeholder="密码" required="">
+			              	</div>
+			              	<a class="link-primary" href="/forgot">忘记密码?</a>
+			              	<button class="btn btn-block btn-lg btn-primary mt-2" type="button">登录</button>
+			              	<p class="mt-4 text-center">还没有账号? <a class="link-primary" href="/signup">注册</a>.</p>
+			            </form>
+					</div>
+				</div>
+			</div>			
+		</div>
+	</main>
+
+	<div th:replace="~{commons::#common-script}"></div>
+
+	<script>
+		$("button[type='button']").click(function () {
+			var data = {
+				userId: $("#userId").val(),
+				password: $("#password").val()
+			};
+			if (!(/^[0-9]{7,11}$/.test(data.userId))) {
+				alert("输入的账号格式错误");
+			} else if (!(/^[^%&',;=?$\x22]{6,14}$/.test(data.password))) {
+				alert("密码至少要6个字符，至多要14个字符，且不能包含“%&',;=?$\x22”字符");
+			} else {
+				$.ajax({
+					url: "/signin_do",
+					method: "POST",
+					data: data,
+					success: function (data) {
+						if(data.status === 1) {
+							swal({
+								title: "登录成功!",
+								text: "正在跳转中......",
+								icon: "success",
+								timer: 3000
+							}).then(function () {
+								location.href = "[[@{/index}]]";
+							});
+						} else {
+							swal({
+								title: "登录失败！",
+								text: data.msg,
+								icon: "error",
+								timer: 3000
+							})
+						}
+					}
+				})
+			}
+		});
+	</script>
+
+</body>
+
+</html>

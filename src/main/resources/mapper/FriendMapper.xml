@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.bestguo.chat.mapper.FriendMapper">
+
+    <resultMap id="BaseResultMap" type="top.bestguo.chat.entity.Friend">
+            <id property="userId" column="userId" jdbcType="INTEGER"/>
+            <id property="friendId" column="friendId" jdbcType="INTEGER"/>
+            <result property="isAllowed" column="isAllowed" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        userId,friendId,isAllowed
+    </sql>
+</mapper>

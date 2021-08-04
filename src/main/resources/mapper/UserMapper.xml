@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.bestguo.chat.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="top.bestguo.chat.entity.User">
+            <id property="userId" column="userId" jdbcType="INTEGER"/>
+            <result property="username" column="username" jdbcType="VARCHAR"/>
+            <result property="password" column="password" jdbcType="VARCHAR"/>
+            <result property="website" column="website" jdbcType="VARCHAR"/>
+            <result property="city" column="city" jdbcType="VARCHAR"/>
+            <result property="bloodType" column="bloodType" jdbcType="VARCHAR"/>
+            <result property="head" column="head" jdbcType="VARCHAR"/>
+            <result property="email" column="email" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        userId,username,password,
+        website,city,bloodType,
+        head,email
+    </sql>
+    <select id="findUserIdByAll" resultType="java.lang.Integer">
+        select count(userId) from user where userId = #{userId}
+    </select>
+
+</mapper>
