@@ -82,7 +82,8 @@ $(document).ready(function () {
         $('#addfriend,.modal-backdrop,.model-bg').fadeOut();
         return !1
     });
-    $('#pagetour').addClass('show').fadeIn()
+    $('#pagetour').addClass('show').fadeIn();
+    console.log("欢迎运行简易 web 聊天室。\n项目地址：https://github.com/BestGuo2020/small_chat\n作者个人主页：https://www.bestguo.top\n原始项目版权归作者所有！！");
 });
 
 
