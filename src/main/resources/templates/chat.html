@@ -420,10 +420,15 @@
 </div>
 <!-- main wrapper -->
 
+<!-- notification sound -->
+<audio id="notification" th:src="@{/static/media/13_Hippie.ogg}"></audio>
+<!-- notification sound -->
+
 <!-- SCRIPTS -->
 <div th:replace="~{commons::#common-script}"></div>
 <script src="https://cdn.bootcdn.net/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.min.js"></script>
 <script th:src="@{/static/js/toast.min.js}"></script>
+<script th:src="@{/static/js/reconnecting-websocket.min.js}"></script>
 <!-- websocket -->
 <script th:src="@{/static/js/chat.js}"></script>
 <!-- 查找好友 -->

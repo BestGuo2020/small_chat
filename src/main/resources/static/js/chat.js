@@ -1,4 +1,4 @@
-var ws = new WebSocket("ws://" + location.hostname + ":" + location.port + "/index/mainPoint");
+var ws = new ReconnectingWebSocket("ws://" + location.hostname + ":" + location.port + "/index/mainPoint");
 // 接收到服务端发送的消息
 ws.onmessage = function (e) {
     // console.log(e);
@@ -27,11 +27,7 @@ ws.onmessage = function (e) {
                         onlineStatus = `<span class="online-status offline" title="离线"></span>`
                     }
                     // 没有头像的时候
-                    var head = `<span class="avatar-title bg-primary rounded-circle">` + arr[i].username.charAt(0).toUpperCase() + `</span>`;
-                    // 如果有头像
-                    if (arr[i].head !== null) {
-                        head = `<img src="/static/images/user-2.png" alt="image" />`
-                    }
+                    var head = headExist(arr[i].head, arr[i].username, "big");
                     head += onlineStatus;
                     // 好友项拼接
                     var friendHtml =
@@ -83,11 +79,7 @@ ws.onmessage = function (e) {
                 online = `<small>离线</small>`
             }
             // 没有头像的时候
-            var head = `<span class="avatar-title bg-primary rounded-circle non-head ">` + data.info.username.charAt(0).toUpperCase() + `</span>`;
-            // 如果有头像
-            if (data.info.head !== null) {
-                head = `<img src="/static/images/user-2.png" alt="image" />`
-            }
+            var head = headExist(data.info.head, data.info.username, "big");
             // 加载头像和昵称
             $("#content-header").html(`<figure class="avatar">` + head + `</figure>
 					<div>
@@ -105,8 +97,8 @@ ws.onmessage = function (e) {
             var temp1 = $(".chat-content")[1];
             // 如果会话存储中有好友记录
             if(parse !== null) {
-                // 如果收到的用户不是当前聊天的用户，且移动端不处于聊天界面当中，则显示通知信息
-                if(temp1.className.indexOf("mobile-active") === -1 && parse.userId !== data.info.userId) {
+                // 如果收到的用户不是当前聊天的用户，或者移动端不处于聊天界面当中，则显示通知信息
+                if(temp1.className.indexOf("mobile-active") === -1 || parse.userId !== data.info.userId) {
                     // 聊天通知
                     $.toast({
                         type: 'info',
@@ -120,6 +112,11 @@ ws.onmessage = function (e) {
                             alt: 'Image'
                         }
                     });
+                    // 播放音乐
+                    $("#notification")[0].play();
+                } else {
+                    // 否则就将消息展示到当前的聊天界面中
+                    renderChat(data.time, data.info.username, data.info.head, data.msg, "left", true);
                 }
             } else {
                 // 聊天通知
@@ -135,28 +132,12 @@ ws.onmessage = function (e) {
                         alt: 'Image'
                     }
                 });
+                // 播放音乐
+                $("#notification")[0].play();
             }
-            // 判断是否有头像
-            var head2 = `<a href="chat.html#" class="profile-detail-bttn"><img src="/static/images/user-7.png" class="rounded-circle" alt="image"></a>`;
-            if(data.info.head === null) {
-                head2 = `<span class="avatar-title bg-primary rounded-circle non-head non-head-small">` + data.info.username.charAt(0).toUpperCase() + `</span>`
-            }
-            // 用户界面展示的消息
-            var messageHtml = `<div class="message-item animate__animated animate__fadeInLeft">
-						<div class="message-user">
-							<figure class="avatar">` + head2 + `</figure>
-							<div>
-								<h5>` + data.info.username + `</h5>
-								<div class="time">` + data.time + `<i class="text-info"></i></div>
-							</div>
-						</div>
-						<div class="message-wrap">` + data.msg + `</div>
-					</div>`;
-            // 添加到界面去
-            $(".messages-content").append(messageHtml);
             setChatHeight();
             // 保存消息
-            var item = sessionStorage.getItem("userInfo");
+            var item = JSON.parse(sessionStorage.getItem("userInfo"));
             saveChat(item.userId, data.info.userId, false, data.time, data.info.username, data.info.head, data.msg);
             saveNewMessage(item.userId, data.info.userId, data.time, data.info.head, data.info.username, data.msg);
             // 重新加载最近聊天
@@ -164,10 +145,7 @@ ws.onmessage = function (e) {
         } else if (data.websocketStatus === 30) {
             var html = "";
             for(var i = 0; i < data.info.length; i++) {
-                var head3 = `<img src="/static/images/user-7.png" alt="image">`;
-                if(data.info[i].head === null) {
-                    head3 = `<div class="avatar-title bg-primary rounded-circle non-head non-head-small non-head-small-2">` + data.info[i].username.charAt(0).toUpperCase() + `</div>`
-                }
+                var head3 = headExist(data.info[i].head, data.info[i].username, "big");
                 html += `<div class="owl-item" data-user-id="` + data.info[i].userId + `" data-username="` + data.info[i].username + `" style="width: 72.333px;" onclick="confirmFriend(this)">
                                 <div class="item">
                                     <div class="recent-chat float-left">
@@ -184,6 +162,7 @@ ws.onmessage = function (e) {
 };
 // 错误
 ws.onerror = function (e) {
+    console.log(e);
     swal({
         title: "错误",
         text: "发生未知异常",
@@ -240,59 +219,25 @@ function selectFriend(e, recent = false) {
                         var time = message[i].left.time;
                         var name = message[i].left.name;
                         var head = message[i].left.head;
-                        var message1 = message[i].left.message;
-                        // 判断是否有头像
-                        var head2 = `<a href="chat.html#" class="profile-detail-bttn"><img src="/static/images/user-7.png" class="rounded-circle" alt="image"></a>`;
-                        if(head === null) {
-                            head2 = `<span class="avatar-title bg-danger rounded-circle non-head non-head-small">` + name.charAt(0).toUpperCase() + `</span>`
-                        }
-                        // 用户界面展示的消息
-                        var messageHtml = `<div class="message-item">
-                                    <div class="message-user">
-                                        <figure class="avatar">` + head2 + `</figure>
-                                        <div>
-                                            <h5>` + name + `</h5>
-                                            <div class="time">` + time + `<i class="text-info"></i></div>
-                                        </div>
-                                    </div>
-                                    <div class="message-wrap">` + message1 + `</div>
-                                </div>`;
-                        // 添加到界面去
-                        $(".messages-content").append(messageHtml);
-                    })();
+                        var msg = message[i].left.message;
+                        renderChat(time, name, head, msg, "left");
+                    })(message, i);
                 } else if(message[i].right !== null && message[i].right !== undefined) {
                     (function () {
                         var time = message[i].right.time;
                         var name = message[i].right.name;
-                        var head2 = message[i].right.head;
-                        var message1 = message[i].right.message;
-                        // 判断是否有头像
-                        var head = `<a href="chat.html#" class="profile-detail-bttn"><img src="/static/images/user-7.png" class="rounded-circle" alt="image"></a>`;
-                        if (head2 === null) {
-                            head = `<span class="avatar-title bg-danger rounded-circle non-head non-head-small">` + name.charAt(0).toUpperCase() + `</span>`
-                        }
-                        // 用户界面展示的消息
-                        var messageHtml = `<div class="message-item outgoing-message">
-                                    <div class="message-user">
-                                        <figure class="avatar">` + head + `</figure>
-                                        <div>
-                                            <h5>` + name + `</h5>
-                                            <div class="time">` + time + `<i class="text-info"></i></div>
-                                        </div>
-                                    </div>
-                                    <div class="message-wrap">` + message1 + `</div>
-                                </div>`;
-                        // 添加到界面去
-                        $(".messages-content").append(messageHtml);
-                    })();
+                        var head = message[i].right.head;
+                        var msg = message[i].right.message;
+                        renderChat(time, name, head, msg);
+                    })(message, i);
                 }
             }
-        }
-        // 如果有新消息，则设置为0
-        if(chatInfoElement.new_message !== undefined) {
-            chatInfoElement.new_message.count = 0;
-            localStorage.setItem(item.userId, JSON.stringify(chatInfo));
-            loadRecent();
+            // 如果有新消息，则设置为0
+            if(chatInfoElement.new_message !== undefined) {
+                chatInfoElement.new_message.count = 0;
+                localStorage.setItem(item.userId, JSON.stringify(chatInfo));
+                loadRecent();
+            }
         }
         // 重新设定高度
         setChatHeight();
@@ -316,23 +261,9 @@ function sendMessage() {
         $("#send-text").attr("placeholder", "不能发空消息");
     } else {
         // 判断是否有头像
-        var head = `<a href="chat.html#" class="profile-detail-bttn"><img src="/static/images/user-7.png" class="rounded-circle" alt="image"></a>`;
-        if(userHead === null) {
-            head = `<span class="avatar-title bg-danger rounded-circle non-head non-head-small">` + user.username.charAt(0).toUpperCase() + `</span>`
-        }
+        var head = headExist(userHead, user.username);
         // 用户界面展示的消息
-        var messageHtml = `<div class="message-item outgoing-message animate__animated animate__fadeInRight">
-					<div class="message-user">
-						<figure class="avatar">` + head + `</figure>
-						<div>
-							<h5>` + user.username + `</h5>
-							<div class="time">` + time + `<i class="text-info"></i></div>
-						</div>
-					</div>
-					<div class="message-wrap">` + message + `</div>
-		         </div>`;
-        // 添加到界面去
-        $(".messages-content").append(messageHtml);
+        renderChat(time, user.username, userHead, message, "right", true);
         // 发送给用户
         try {
             ws.send(sendData);
@@ -499,10 +430,7 @@ function loadRecent() {
             var new_message = userMessages[key].new_message;
             if(new_message !== undefined) {
                 // 判断是否有头像
-                var head = `<img src="/static/images/user-7.png" alt="image">`;
-                if(new_message.head === null || new_message.head === undefined) {
-                    head = `<span class="avatar-title bg-primary rounded-circle non-head non-head-small">` + new_message.name.charAt(0).toUpperCase() + `</span>`
-                }
+                var head = headExist(new_message.head, new_message.name, "big");
                 var actionHtml = `<div class="message-count bg-primary">` + new_message.count + `</div>
 						<small class="text-primary">` + new_message.time + `</small>
 						`;
@@ -528,4 +456,70 @@ function loadRecent() {
         }
     }
     $("#recent-chat").html(htmlStr);
+}
+
+/**
+ * 渲染聊天数据
+ *
+ * @param time 时间
+ * @param name 用户名
+ * @param head 头像
+ * @param message 消息
+ * @param side 哪一边
+ * @param loadAnimate 加载动画特效
+ */
+function renderChat(time, name, head, message, side = "right", loadAnimate = false) {
+    // 判断是否有头像
+    var head2 = headExist(head, name);
+    // 用户界面展示的消息
+    var animationRight = "", animationLeft = "";
+    if(loadAnimate){
+        animationRight = "animate__animated animate__fadeInRight";
+        animationLeft = "animate__animated animate__fadeInLeft";
+    }
+    var messageHtml = '';
+    if(side === "left") {
+        messageHtml = `<div class="message-item ` + animationLeft + `">
+                                    <div class="message-user">
+                                        <figure class="avatar">` + head2 + `</figure>
+                                        <div>
+                                            <h5>` + name + `</h5>
+                                            <div class="time">` + time + `<i class="text-info"></i></div>
+                                        </div>
+                                    </div>
+                                    <div class="message-wrap">` + message + `</div>
+                                </div>`;
+    } else if (side === "right") {
+        messageHtml = `<div class="message-item outgoing-message  ` + animationRight + `">
+                                    <div class="message-user">
+                                        <figure class="avatar">` + head2 + `</figure>
+                                        <div>
+                                            <h5>` + name + `</h5>
+                                            <div class="time">` + time + `<i class="text-info"></i></div>
+                                        </div>
+                                    </div>
+                                    <div class="message-wrap">` + message + `</div>
+                                </div>`;
+    }
+    // 添加到界面去
+    $(".messages-content").append(messageHtml);
+}
+
+/**
+ * 头像是否存在
+ *
+ * @param head 头像
+ * @param name 名字
+ * @param size 头像大小
+ */
+function headExist(head, name, size = "small") {
+    var headSize = "";
+    if("small" === size) {
+        headSize = "non-head-small"
+    }
+    if(head === null || head === undefined) {
+        return `<span class="avatar-title bg-primary rounded-circle non-head ` + headSize + `">` + name.charAt(0).toUpperCase() + `</span>`;
+    } else {
+        return `<img src="/static/images/user-7.png" class="rounded-circle" alt="image">`;
+    }
 }

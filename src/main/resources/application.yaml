@@ -3,7 +3,7 @@ spring:
     host: smtp.qq.com
     port: 465
     username: bestguo2020@foxmail.com
-    password: '************'
+    password: wilftlwhzlivfjjg
     # 开启加密验证
     properties:
       mail:

@@ -73,7 +73,7 @@ public class UserServiceImpl implements UserService {
      * @return
      */
     @Override
-    public Message addFriend(Friend friend) {
+    public Message addFriend(Friend friend){
         Message message = new Message();
         // 查询条件
         QueryWrapper<Friend> queryWrapper = new QueryWrapper<>();
