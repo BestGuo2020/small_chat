@@ -92,6 +92,8 @@ ws.onmessage = function (e) {
             // 收到聊天消息
             console.log("收到哪个用户：", data.info.username);
             console.log("消息：", data.msg);
+            // 播放音乐
+            $("#notification")[0].play();
             // 获取当前的和哪位好友的会话状态
             var parse = JSON.parse(sessionStorage.getItem("friend"));
             var temp1 = $(".chat-content")[1];
@@ -112,8 +114,6 @@ ws.onmessage = function (e) {
                             alt: 'Image'
                         }
                     });
-                    // 播放音乐
-                    $("#notification")[0].play();
                 } else {
                     // 否则就将消息展示到当前的聊天界面中
                     renderChat(data.time, data.info.username, data.info.head, data.msg, "left", true);
@@ -132,8 +132,6 @@ ws.onmessage = function (e) {
                         alt: 'Image'
                     }
                 });
-                // 播放音乐
-                $("#notification")[0].play();
             }
             setChatHeight();
             // 保存消息
@@ -165,7 +163,7 @@ ws.onerror = function (e) {
     console.log(e);
     swal({
         title: "错误",
-        text: "发生未知异常",
+        text: "与服务器的连接发生了异常，请刷新重试",
         icon: "error"
     })
 };
@@ -239,9 +237,9 @@ function selectFriend(e, recent = false) {
                 loadRecent();
             }
         }
-        // 重新设定高度
-        setChatHeight();
     }
+    // 重新设定高度
+    setChatHeight();
 }
 
 // 发送消息给好友

@@ -10,6 +10,7 @@ import top.bestguo.chat.mapper.UserMapper;
 import top.bestguo.chat.msg.Message;
 import top.bestguo.chat.service.EmailService;
 import top.bestguo.chat.service.SignService;
+import top.bestguo.utils.EncryptionMD5;
 
 import javax.servlet.http.HttpSession;
 
@@ -32,7 +33,7 @@ public class SignServiceImpl implements SignService {
         // 查询该用户是否存在
         User user1 = userMapper.selectOne(new QueryWrapper<User>()
                 .eq("userId", user.getUserId())
-                .eq("password", user.getPassword()));
+                .eq("password", EncryptionMD5.encrypt(user.getPassword())));
         if(user1 != null) {
             message.setStatus(Message.OK);
             message.setMsg("登录成功");
@@ -55,6 +56,7 @@ public class SignServiceImpl implements SignService {
     public Message signup(User user) {
         Message message = new Message();
         try {
+            user.setPassword(EncryptionMD5.encrypt(user.getPassword()));
             int res = userMapper.insert(user);
             if(res > 0) {
                 message.setMsg("注册成功，稍等一会儿将会收到一封邮件");

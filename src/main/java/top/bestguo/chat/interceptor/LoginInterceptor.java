@@ -18,7 +18,10 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
         Object user = request.getSession().getAttribute("user");
-        if(user == null) {
+        // 获取 servlet 路径和上下文路径
+        String servletPath = request.getServletPath();
+        String contextPath = "/" + request.getContextPath();
+        if(user == null && !servletPath.equals(contextPath)) {
             response.setContentType("text/html;charset=utf-8");
             // 如果是 ajax 请求响应头会有 x-requested-with
             if (request.getHeader("x-requested-with") != null && request.getHeader("x-requested-with").equalsIgnoreCase("XMLHttpRequest")){
@@ -38,6 +41,14 @@ public class LoginInterceptor implements HandlerInterceptor {
                         "</script>";
                 response.getWriter().write(html);
             }
+            return false;
+        } else if(user == null) {
+            response.setContentType("text/html;charset=utf-8");
+            //非ajax请求时，session失效的处理
+            String html = "<script>" +
+                    "sessionStorage.removeItem('friend');location.href = '/signin'" +
+                    "</script>";
+            response.getWriter().write(html);
             return false;
         }
         return true;
