@@ -155,6 +155,21 @@ ws.onmessage = function (e) {
                             </div>`;
             }
             $(".owl-stage").html(html);
+        } else if (data.websocketStatus === 31) {
+            // 播放音乐
+            $("#notification")[0].play();
+            $.toast({
+                type: 'error',
+                title: '系统',
+                subtitle: '发了一条消息给你',
+                content: data.msg,
+                delay: 5000,
+                img: {
+                    src: '/static/images/ring.png',
+                    class: 'rounded-0', /**  Classes you want to apply separated my a space to modify the image **/
+                    alt: 'Image'
+                }
+            });
         }
     }
 };

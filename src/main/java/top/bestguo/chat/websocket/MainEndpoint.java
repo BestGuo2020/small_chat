@@ -200,15 +200,25 @@ public class MainEndpoint {
                 String msg = jsonObject.getString("message");
                 String time = jsonObject.getString("time");
                 MainEndpoint mainEndpoint = onlineUsers.get(userId);
-                // 发送消息给这位用户
-                message1.setWebsocketStatus(WebSocketMessage.SEND_MESSAGE);
-                message1.setInfo(user);
-                message1.setStatus(Message.OK);
-                message1.setMsg(msg);
-                message1.setTime(time);
-                log.info("发送状态：   " + user.getUsername() + " -> message -> " + mainEndpoint.user.getUsername());
-                mainEndpoint.session.getBasicRemote().sendText(MessageUtil.objectConvertJson(message1));
-                return;
+                // 判断当前用户是否在线，不在线就提示它不在线
+                if(mainEndpoint == null) {
+                    // 发送消息给发送者
+                    message1.setWebsocketStatus(WebSocketMessage.FRIEND_OFFLINE);
+                    message1.setInfo(user);
+                    message1.setStatus(Message.OK);
+                    message1.setMsg("发送失败，好友 " + userId + " 不在线");
+                    message1.setTime(time);
+                } else {
+                    // 发送消息给这位用户
+                    message1.setWebsocketStatus(WebSocketMessage.SEND_MESSAGE);
+                    message1.setInfo(user);
+                    message1.setStatus(Message.OK);
+                    message1.setMsg(msg);
+                    message1.setTime(time);
+                    log.info("发送状态：   " + user.getUsername() + " -> message -> " + mainEndpoint.user.getUsername());
+                    mainEndpoint.session.getBasicRemote().sendText(MessageUtil.objectConvertJson(message1));
+                    return;
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();

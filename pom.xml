@@ -82,6 +82,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- xiaohehe_utils.jar 需要引入
+        详情请看：https://github.com/BestGuo2020/xiaohehe_utils/blob/main/README.md-->
+        <dependency>
+            <groupId>top.bestguo</groupId>
+            <artifactId>xiaohehe_utils</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -125,6 +132,7 @@
                 </executions>
             </plugin>
         </plugins>
+
     </build>
 
 </project>

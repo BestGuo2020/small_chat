@@ -46,6 +46,11 @@ public class WebSocketMessage<T> extends Message {
     public static final int FRIENDS_CONFIRM = 30;
 
     /**
+     * 好友不在线
+     */
+    public static final int FRIEND_OFFLINE = 31;
+
+    /**
      * 携带信息
      */
     private T info;
